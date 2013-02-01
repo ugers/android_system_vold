@@ -31,9 +31,9 @@ extern "C" int mount(const char *, const char *, const char *, unsigned long, co
 
 int Exfat::check(const char *fsPath)
 {  
-	LOGV("Exfat::check");
+	ALOGV("Exfat::check");
 	if (access(FSCK_EXFAT_PATH, X_OK)) {
-        SLOGW("Skipping fs checks\n");
+        ALOGW("Skipping fs checks\n");
         return 0;
     }
 
@@ -47,7 +47,7 @@ int Exfat::check(const char *fsPath)
     rc = logwrap(2, args, 1);
 	if( rc != 0 )
 	{	
-       SLOGE("Filesystem check failed (unknown exit code %d)", rc);
+       ALOGE("Filesystem check failed (unknown exit code %d)", rc);
     }
 
 	return rc;
@@ -61,7 +61,7 @@ int Exfat::doMount(const char *fsPath, const char *mountPoint,
     const char *args[11];
     char mountData[255];
 
-    SLOGE("Exfat::doMount");
+    ALOGE("Exfat::doMount");
     sprintf(mountData,
             "locale=utf8,uid=%d,gid=%d,fmask=%o,dmask=%o,noatime,nodiratime",
             ownerUid, ownerGid, permMask, permMask);
@@ -75,7 +75,7 @@ int Exfat::doMount(const char *fsPath, const char *mountPoint,
     rc = logwrap(5, args, 1);
 	if( rc !=0 )
 	{
-		LOGE("Exfat::doMount error :", strerror(errno));
+		ALOGE("Exfat::doMount error :", strerror(errno));
 	}
 
     return rc;	
@@ -83,6 +83,6 @@ int Exfat::doMount(const char *fsPath, const char *mountPoint,
 
 int Exfat::format(const char *fsPath, unsigned int numSectors)
 {
-	LOGW("donnot support exfat format");
+	ALOGW("donnot support exfat format");
 	return 0;
 }
