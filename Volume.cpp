@@ -455,7 +455,7 @@ int Volume::mountVol() {
                 return -1;
             }
         }
-+#endif
+#endif
         /*
          * Mount the device on our internal staging mountpoint so we can
          * muck with it before exposing it to non priviledged users.
