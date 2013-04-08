@@ -52,19 +52,6 @@
 #include "Process.h"
 #include "cryptfs.h"
 
-#ifndef FUSE_SDCARD_UID
-#define FUSE_SDCARD_UID 1023
-#endif
-#ifndef FUSE_SDCARD_GID
-#define FUSE_SDCARD_GID 1023
-#endif
-
-// Stringify defined values
-#define DO_STRINGIFY(str) #str
-#define STRINGIFY(str) DO_STRINGIFY(str)
-
-static char SDCARD_DAEMON_PATH[] = "/system/bin/sdcard";
-
 extern "C" void dos_partition_dec(void const *pp, struct dos_partition *d);
 extern "C" void dos_partition_enc(void *pp, struct dos_partition *d);
 
@@ -104,12 +91,6 @@ const char *Volume::ASECDIR           = "/mnt/asec";
  * Path to where OBBs are mounted
  */
 const char *Volume::LOOPDIR           = "/mnt/obb";
-
-/*
- * Path for fuse
- */
-const char *Volume::FUSEDIR           = "/mnt/fuse";
-
 
 static const char *stateToStr(int state) {
     if (state == Volume::State_Init)
