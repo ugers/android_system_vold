@@ -22,7 +22,7 @@
 #include "Volume.h"
 
 #ifndef VOLD_MAX_PARTITIONS
-#define VOLD_MAX_PARTITIONS 4
+#define VOLD_MAX_PARTITIONS 16
 #endif
 
 typedef android::List<char *> PathCollection;
@@ -40,9 +40,11 @@ protected:
     int            mOrigDiskMinor;
     int            mOrigPartMinors[MAX_PARTITIONS];
     int            mDiskNumParts;
+    int            mPartsEventCnt;
     unsigned char  mPendingPartMap;
     int            mIsDecrypted;
     int            mFlags;
+    int            mPartsChangeFlag;
 
 #ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
 private:
