@@ -73,14 +73,14 @@ dev_t DirectVolume::getDiskDevice() {
 
 dev_t DirectVolume::getShareDevice() {
     if (mPartIdx != -1) {
-#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
+/*#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
         int major = getMajorNumberForBadPartition(mPartIdx);
         if(major != -1) {
             SLOGE("getShareDevice() returning correct major: %d, minor: %d", major, mPartMinors[mPartIdx - 1]);
             return MKDEV(major, mPartMinors[mPartIdx - 1]);
         }
         else
-#endif
+#endif*/
         return MKDEV(mDiskMajor, mPartIdx);
     } else {
         return MKDEV(mDiskMajor, mDiskMinor);
@@ -224,7 +224,7 @@ void DirectVolume::handlePartitionAdded(const char *devpath, NetlinkEvent *evt) 
         part_num = 1;
     }
 
-    SLOGD("DirectVolume::handlePartitionAdded -> MAJOR %d, MINOR %d, PARTN %d\n", major, minor, part_num);
+    //SLOGD("DirectVolume::handlePartitionAdded -> MAJOR %d, MINOR %d, PARTN %d\n", major, minor, part_num);
 
     if (part_num > MAX_PARTITIONS || part_num < 1) {
         SLOGE("Invalid 'PARTN' value");
@@ -237,20 +237,20 @@ void DirectVolume::handlePartitionAdded(const char *devpath, NetlinkEvent *evt) 
 
     if (major != mDiskMajor) {
         SLOGE("Partition '%s' has a different major than its disk!", devpath);
-#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
+/*#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
         ValuePair vp;
         vp.major = major;
         vp.part_num = part_num;
         badPartitions.push_back(vp);
-#else
+#else*/
         return;
-#endif
+//#endif
     }
 #ifdef PARTITION_DEBUG
     SLOGD("Dv:partAdd: part_num = %d, minor = %d\n", part_num, minor);
 #endif
-    if (part_num > MAX_PARTITIONS) {
-        SLOGE("Dv:partAdd: ignoring part_num = %d (max: %d)\n", part_num, MAX_PARTITIONS);
+    if (part_num >= MAX_PARTITIONS) {
+        SLOGE("Dv:partAdd: ignoring part_num = %d (max: %d)\n", part_num, MAX_PARTITIONS-1);
     } else {
         mPartMinors[part_num -1] = minor;
     }
@@ -416,14 +416,14 @@ int DirectVolume::getDeviceNodes(dev_t *devs, int max) {
         for (i = 0; i < mDiskNumParts; i++) {
             if (i == max)
                 break;
-#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
+/*#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
             int major = getMajorNumberForBadPartition(i + 1);
             if(major != -1) {
                 SLOGE("Fixing major number from %d to %d for partition %d", mDiskMajor, major, i + 1);
                 devs[i] = MKDEV(major, mPartMinors[i]);
             }
             else
-#endif
+#endif*/
             devs[i] = MKDEV(mDiskMajor, mPartMinors[i]);
         }
         return mDiskNumParts;
@@ -433,25 +433,25 @@ int DirectVolume::getDeviceNodes(dev_t *devs, int max) {
              devs[0] = MKDEV(mDiskMajor, mPartMinors[0]);
             return 1;  
         }
-#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
+/*#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
     int major = getMajorNumberForBadPartition(mPartIdx);
     if(major != -1) {
         SLOGE("Fixing major number from %d to %d for partition %d", mDiskMajor, major, mPartIdx);
         devs[0] = MKDEV(major, mPartMinors[mPartIdx - 1]);
     }
     else
-#endif
+#endif*/
     }
     devs[0] = MKDEV(mDiskMajor, mPartMinors[mPartIdx -1]);
     return 1;
 }
 
-#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
+/*#ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
 /*
  * Returns the correct major number for a bad partition.
  * Returns -1 if the partition is good.
  */
-int DirectVolume::getMajorNumberForBadPartition(int part_num) {
+/*int DirectVolume::getMajorNumberForBadPartition(int part_num) {
     SLOGD("Checking for bad partition major number");
     bool found = false;
     android::List<ValuePair>::iterator iterator = badPartitions.begin();
@@ -467,7 +467,7 @@ int DirectVolume::getMajorNumberForBadPartition(int part_num) {
     else
         return -1;
 }
-#endif
+#endif*/
 
 /*
  * Called from base to update device info,
