@@ -20,7 +20,7 @@ ifeq ($(BOARD_VOLD_CRYPTFS_MIGRATE), true)
 common_cflags += -DCRYPTFS_MIGRATE
 endif
 
-common_cflags += -Werror
+common_cflags += -Werror=format
 
 common_src_files := \
 	VolumeManager.cpp \
@@ -33,8 +33,10 @@ common_src_files := \
 	Process.cpp \
 	Ext4.cpp \
 	Fat.cpp \
-	Ntfs.cpp \
 	Exfat.cpp \
+	Ntfs.cpp \
+	iso9660.cpp \
+	Tmpfs.cpp \
 	F2FS.cpp \
 	Loop.cpp \
 	Devmapper.cpp \

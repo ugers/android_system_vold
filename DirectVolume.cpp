@@ -123,6 +123,12 @@ int DirectVolume::handleBlockEvent(NetlinkEvent *evt) {
                 int minor = atoi(evt->findParam("MINOR"));
                 char nodepath[255];
 
+                mPartsChangeFlag = 0;
+                if (major == 179) {
+                    if (!strncmp(getLabel(), "sdcard", strlen("sdcard")) && !strncmp(dp, "/devices/platform/sunxi-mmc.", strlen("/devices/platform/sunxi-mmc."))) {
+                        mPartsChangeFlag = 1;
+                    }
+                }
                 snprintf(nodepath,
                          sizeof(nodepath), "/dev/block/vold/%d:%d",
                          major, minor);
@@ -217,8 +223,6 @@ void DirectVolume::handlePartitionAdded(const char *devpath, NetlinkEvent *evt) 
         SLOGW("Kernel block uevent missing 'PARTN'");
         part_num = 1;
     }
-
-    SLOGD("DirectVolume::handlePartitionAdded -> MAJOR %d, MINOR %d, PARTN %d\n", major, minor, part_num);
 
     if (part_num > MAX_PARTITIONS || part_num < 1) {
         SLOGE("Invalid 'PARTN' value");
@@ -357,10 +361,12 @@ void DirectVolume::handlePartitionRemoved(const char *devpath, NetlinkEvent *evt
             SLOGE("Failed to cleanup ASEC - unmount will probably fail!");
         }
 
+        if (!strstr(getLabel(),"usb") && !strstr(getLabel(),"extsd")) {
         snprintf(msg, sizeof(msg), "Volume %s %s bad removal (%d:%d)",
                  getLabel(), getFuseMountpoint(), major, minor);
         mVm->getBroadcaster()->sendBroadcast(ResponseCode::VolumeBadRemoval,
                                              msg, false);
+        }
 
         if (Volume::unmountVol(true, false)) {
             SLOGE("Failed to unmount volume on bad removal (%s)", 
@@ -394,7 +400,6 @@ int DirectVolume::getDeviceNodes(dev_t *devs, int max) {
         // If the disk has no partitions, try the disk itself
         if (!mDiskNumParts) {
             devs[0] = MKDEV(mDiskMajor, mDiskMinor);
-            SLOGD("Disc has only one partition.");
             return 1;
         }
 

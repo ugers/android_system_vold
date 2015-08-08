@@ -48,7 +48,7 @@ protected:
     int            mDiskNumParts;
     unsigned int   mPendingPartMap;
     int            mIsDecrypted;
-
+    int            mPartsChangeFlag;
 #ifdef VOLD_DISC_HAS_MULTIPLE_MAJORS
 private:
     struct ValuePair {

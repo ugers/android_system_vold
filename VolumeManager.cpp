@@ -1704,12 +1704,11 @@ bool VolumeManager::isMountpointMounted(const char *mp)
 }
 
 int VolumeManager::cleanupAsec(Volume *v, bool force) {
-    // Only primary storage needs ASEC cleanup
-    if (!(v->getFlags() & VOL_PROVIDES_ASEC)) {
+    const char *externalPath = getenv("EXTERNAL_STORAGE") ?: "/mnt/sdcard";
+    if (0 != strcmp(v->getMountpoint(), externalPath))
         return 0;
-    }
 
-    int rc = 0;
+    int rc = unmountAllAsecsInDir(Volume::SEC_ASECDIR_EXT);
 
     char asecFileName[255];
 

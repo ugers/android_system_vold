@@ -51,6 +51,8 @@
 #include "Fat.h"
 #include "Ntfs.h"
 #include "Exfat.h"
+#include "iso9660.h"
+#include "Tmpfs.h"
 #include "F2FS.h"
 #include "Process.h"
 #include "cryptfs.h"
@@ -631,9 +633,36 @@ int Volume::mountAsecExternal() {
         }
     }
 
-    if (fs_prepare_dir(secure_path, 0770, AID_MEDIA_RW, AID_MEDIA_RW) != 0) {
+    /*if (fs_prepare_dir(secure_path, 0770, AID_MEDIA_RW, AID_MEDIA_RW) != 0) {
         SLOGW("fs_prepare_dir failed: %s", strerror(errno));
         return -1;
+    }*/
+
+    /*
+     * Ensure that /android_secure exists and is a directory
+     */
+    if (access(secure_path, R_OK | X_OK)) {
+        if (errno == ENOENT) {
+            if (mkdir(secure_path, 0777)) {
+                SLOGE("Failed to create %s (%s)", secure_path, strerror(errno));
+                return -1;
+            }
+        } else {
+            SLOGE("Failed to access %s (%s)", secure_path, strerror(errno));
+            return -1;
+        }
+    } else {
+        struct stat sbuf;
+
+        if (stat(secure_path, &sbuf)) {
+            SLOGE("Failed to stat %s (%s)", secure_path, strerror(errno));
+            return -1;
+        }
+        if (!S_ISDIR(sbuf.st_mode)) {
+            SLOGE("%s is not a directory", secure_path);
+            errno = ENOTDIR;
+            return -1;
+        }
     }
 
     if (mount(secure_path, SEC_ASECDIR_EXT, "", MS_BIND, NULL)) {
@@ -700,10 +729,13 @@ int Volume::unmountVol(bool force, bool revert) {
 
     // TODO: determine failure mode if FUSE times out
 
+// we don't need to unmount SEC_ASECDIR_EXT when unmounting usb or extsd storage
+if (getMountpoint() != NULL && !strstr(getMountpoint(),"usb") && !strstr(getMountpoint(),"extsd")) {
     if (providesAsec && doUnmount(Volume::SEC_ASECDIR_EXT, force) != 0) {
         SLOGE("Failed to unmount secure area on %s (%s)", getMountpoint(), strerror(errno));
         goto out_mounted;
     }
+}
 
     /* Now that the fuse daemon is dead, unmount it */
     if (doUnmount(getFuseMountpoint(), force) != 0) {

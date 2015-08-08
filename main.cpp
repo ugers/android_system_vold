@@ -26,6 +26,7 @@
 #include <fs_mgr.h>
 
 #define LOG_TAG "Vold"
+
 #include "cutils/klog.h"
 #include "cutils/log.h"
 #include "cutils/properties.h"
@@ -181,18 +182,21 @@ static int process_config(VolumeManager *vm)
                 flags |= VOL_ENCRYPTABLE;
             }
             /* Only set this flag if there is not an emulated sd card */
-            if (fs_mgr_is_noemulatedsd(&fstab->recs[i])) {
+            if (fs_mgr_is_noemulatedsd(&fstab->recs[i]) &&
+                !strcmp(fstab->recs[i].fs_type, "vfat")) {
                 flags |= VOL_PROVIDES_ASEC;
             }
-            dv = new DirectVolume(vm, &(fstab->recs[i]), flags);
+            dv = (DirectVolume*) vm->lookupVolume(fstab->recs[i].label);
+            if (dv == NULL) {
+                dv = new DirectVolume(vm, &(fstab->recs[i]), flags);
+                vm->addVolume(dv);
+            }
 
             if (dv->addPath(fstab->recs[i].blk_device)) {
                 SLOGE("Failed to add devpath %s to volume %s",
                       fstab->recs[i].blk_device, fstab->recs[i].label);
                 goto out_fail;
             }
-
-            vm->addVolume(dv);
         }
     }
 
